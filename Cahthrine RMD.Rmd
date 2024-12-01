@@ -1,0 +1,681 @@
+---
+title: "Untitled"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+date: "2024-11-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r }
+# Load necessary libraries
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(readxl)
+library(tidyr)
+library(kableExtra)
+```
+
+
+
+```{r}
+  # Load the dataset from Desktop
+avg <- read_xlsx("C:/Users/AVG.xlsx", sheet = 2)  
+
+```
+
+```{r}
+head(avg)
+
+```
+
+
+
+
+
+# Bar Graphs
+
+```{r}
+
+# Bar graph for Gender (with percentages on bars and sorted by percentage)
+gender_plot <- avg %>%
+  count(Gender) %>%
+  mutate(Percentage = n / sum(n) * 100) %>%
+  arrange(desc(Percentage)) %>%  # Sort in descending order
+  ggplot(aes(x = reorder(Gender, -Percentage), y = Percentage, fill = Gender)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(Percentage, 1), "%")), vjust = -0.5) +
+  labs(title = "Gender ", y = "Percentage", x = "Gender") +
+  theme_minimal()
+
+# Bar graph for Nationality (with percentages on bars and only top 10 by percentage)
+nationality_plot <- avg %>%
+  count(Nationality) %>%
+  mutate(Percentage = n / sum(n) * 100) %>%
+  arrange(desc(Percentage)) %>%  # Sort in descending order
+  slice_head(n = 10) %>%  # Take the top 10 nationalities
+  ggplot(aes(x = reorder(Nationality, -Percentage), y = Percentage, fill = Nationality)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(Percentage, 1), "%")), vjust = -0.5) +
+  labs(title = "Top 10 Nationalities", y = "Percentage", x = "Nationality") +
+  theme_minimal()
+
+# Bar graph for Education (with percentages on bars and sorted by percentage)
+education_plot <- avg %>%
+  count(Education) %>%
+  mutate(Percentage = n / sum(n) * 100) %>%
+  arrange(desc(Percentage)) %>%  # Sort in descending order
+  ggplot(aes(x = reorder(Education, -Percentage), y = Percentage, fill = Education)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(Percentage, 1), "%")), vjust = -0.5) +
+  labs(title = "Education ", y = "Percentage", x = "Education") +
+  theme_minimal()
+
+# Bar graph for Diagnosed with attention issues (sorted by percentage)
+attention_issues_plot <- avg %>%
+  count(`Diagnosed with attention issues (e.g., ADHD/ADD)?`) %>%
+  mutate(Percentage = n / sum(n) * 100) %>%
+  arrange(desc(Percentage)) %>%  # Sort in descending order
+  ggplot(aes(x = reorder(`Diagnosed with attention issues (e.g., ADHD/ADD)?`, -Percentage), y = Percentage, fill = `Diagnosed with attention issues (e.g., ADHD/ADD)?`)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(round(Percentage, 1), "%")), vjust = -0.5) +
+  labs(title = "Diagnosed with Attention ", y = "Percentage", x = "Attention Issues") +
+  theme_minimal()
+
+# Display the bar plots
+print(gender_plot)
+print(nationality_plot)
+print(education_plot)
+print(attention_issues_plot)
+```
+# Average Age Tables by Demo
+
+```{r}
+top_10_nationalities <- c("Dutch", "Turkish", "Chinese", "Netherlands", 
+                          "German", "Indian", "Polish", "Romanian", 
+                          "Croatian", "American") # Example names
+
+```
+
+
+```{r} 
+
+# Overall Average Age (without grouping)
+Age_avg_table <- avg %>%
+  summarise(Average_Age = mean(Age, na.rm = TRUE))
+
+# Average age by Gender
+gender_avg_table <- avg %>%
+  group_by(Gender) %>%
+  summarise(Average_Age = mean(Age, na.rm = TRUE)) %>%
+  arrange(desc(Average_Age))
+
+# Average age by Top 10 Nationalities
+top_nationality_avg_table <- avg %>%
+  group_by(Nationality) %>%
+  summarise(Average_Age = mean(Age, na.rm = TRUE)) %>%
+  filter(Nationality %in% top_10_nationalities) %>%  # Filter for the top 10 nationalities
+  arrange(desc(Average_Age))
+
+# Average age by Education
+education_avg_table <- avg %>%
+  group_by(Education) %>%
+  summarise(Average_Age = mean(Age, na.rm = TRUE)) %>%
+  arrange(desc(Average_Age))
+
+# Combine tables for display
+combined_table <- list(
+    "Average Age" = Age_avg_table,
+  "Average Age by Gender" = gender_avg_table,
+  "Average Age by Top 10 Nationalities" = top_nationality_avg_table,
+  "Average Age by Education" = education_avg_table
+)
+
+# Display tables
+library(knitr)
+kable(Age_avg_table, caption = "Average Age")
+kable(gender_avg_table, caption = "Average Age by Gender")
+kable(top_nationality_avg_table, caption = "Average Age by Top 10 Nationalities")
+kable(education_avg_table, caption = "Average Age by Education")
+
+
+
+```
+
+#Average Age graphs by Demo
+
+
+
+
+```{r}
+
+# Average age by Gender
+gender_avg_plot <- avg %>%
+  group_by(Gender) %>%
+  summarise(Average_Age = mean(Age, na.rm = TRUE)) %>%
+  arrange(desc(Average_Age)) %>%
+  ggplot(aes(x = reorder(Gender, -Average_Age), y = Average_Age, fill = Gender)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = round(Average_Age, 1)), vjust = -0.5) +
+  labs(title = "Average Age by Gender", y = "Average Age", x = "Gender") +
+  theme_minimal()
+
+# Display the plot
+print(gender_avg_plot)
+
+top_10_nationalities <- c("Dutch", "Turkish", "Chinese", "Netherlands", 
+                          "German", "Indian", "Polish", "Romanian", 
+                          "Croatian", "American") # Example names
+
+
+# Filter and create plot
+top_nationality_avg_plot <- avg %>%
+  group_by(Nationality) %>%
+  summarise(Average_Age = mean(Age, na.rm = TRUE)) %>%
+  filter(Nationality %in% top_10_nationalities) %>%  # Filter for top 10
+  arrange(desc(Average_Age)) %>%
+  ggplot(aes(x = reorder(Nationality, -Average_Age), y = Average_Age, fill = Nationality)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = round(Average_Age, 1)), vjust = -0.5) +
+  labs(title = "Top 10 Nationalities by Average Age", y = "Average Age", x = "Nationality") +
+  theme_minimal()
+
+# Display the plot
+print(top_nationality_avg_plot)
+
+# Average age by Education
+education_avg_plot <- avg %>%
+  group_by(Education) %>%
+  summarise(Average_Age = mean(Age, na.rm = TRUE)) %>%
+  arrange(desc(Average_Age)) %>%
+  ggplot(aes(x = reorder(Education, -Average_Age), y = Average_Age, fill = Education)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = round(Average_Age, 1)), vjust = -0.5) +
+  labs(title = "Average Age by Education", y = "Average Age", x = "Education") +
+  theme_minimal()
+
+# Display the plot
+print(education_avg_plot)
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Response Time and Accuracy
+
+
+```{r}
+  # Load the dataset from Desktop
+avg <- read_xlsx("C:/Users/AVG.xlsx", sheet = 1)  
+
+```
+
+```{r}
+colnames(avg)
+```
+
+
+
+```{r}
+# Add HSP_Group based on the threshold
+avg <- avg %>%
+  mutate(
+    Sensitivity_Group = ifelse(`HSP scale score` > 100, "High Sensitivity", "Low Sensitivity")
+  )
+```
+
+
+
+```{r}
+# Descriptive Statistics
+# Means and standard deviations by Group, HSP_Group, and Result_Type for Accuracy
+accuracy_descriptive <- avg %>%
+  group_by(Condition, Sensitivity_Group, Time_Period) %>%
+  summarise(
+    Mean_Accuracy = mean(`Average Accuracy`, na.rm = TRUE),
+    SD_Accuracy = sd(`Average Accuracy`, na.rm = TRUE)
+  )
+print(accuracy_descriptive)
+```
+
+
+```{r}
+# Means and standard deviations by Group, HSP_Group, and Result_Type for Response Time
+response_time_descriptive <- avg %>%
+  group_by(Condition, Sensitivity_Group, Time_Period) %>%
+  summarise(
+    Mean_Response_Time = mean(`Average Response Time`, na.rm = TRUE),
+    SD_Response_Time = sd(`Average Response Time`, na.rm = TRUE)
+  )
+print(response_time_descriptive)
+```
+
+
+
+```{r}
+# Means, standard deviations, and counts by time period for Response Time
+response_time_descriptive <- avg %>%
+  group_by(Time_Period) %>%
+  summarise(
+    Count = n(),
+    Mean_Response_Time = mean(`Average Response Time`, na.rm = TRUE),
+    SD_Response_Time = sd(`Average Response Time`, na.rm = TRUE)
+  )
+print(response_time_descriptive)
+
+
+# Means and standard deviations for Accuracy 
+accuracy_time_descriptive <- avg %>%
+  group_by(Time_Period) %>%
+  summarise(
+    Count = n(),
+    Mean_Accuracy = mean(`Average Accuracy`, na.rm = TRUE),
+    SD_Accuracy = sd(`Average Accuracy`, na.rm = TRUE)
+  )
+print(response_time_descriptive)
+
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+
+# Step 1: Manually Input Descriptive Statistics
+manual_stats <- data.frame(
+  Condition = c("Control", "3D VR", "360-degree VR"),
+  Mean_RT_SART_1 = c(479.98, 483.44, 495.21),
+  SD_RT_SART_1 = c(131.67, 132.50, 134.89),
+  Mean_RT_SART_2 = c(480.43, 474.41, 470.93),
+  SD_RT_SART_2 = c(150.28, 145.20, 142.45),
+  Mean_Accuracy_SART_1 = c(92.8, 93.4, 92.6),
+  SD_Accuracy_SART_1 = c(5.1, 4.9, 5.3),
+  Mean_Accuracy_SART_2 = c(92.5, 93.6, 93.8),
+  SD_Accuracy_SART_2 = c(4.8, 4.7, 5.0),
+  n_SART_1 = 124,  # Sample size for SART 1
+  n_SART_2 = 124   # Sample size for SART 2
+)
+
+# Step 2: Calculate Differences (SART 2 - SART 1)
+comparison_table <- manual_stats %>%
+  mutate(
+    Diff_Mean_RT = Mean_RT_SART_2 - Mean_RT_SART_1,
+    Diff_SD_RT = SD_RT_SART_2 - SD_RT_SART_1,
+    Diff_Mean_Accuracy = Mean_Accuracy_SART_2 - Mean_Accuracy_SART_1,
+    Diff_SD_Accuracy = SD_Accuracy_SART_2 - SD_Accuracy_SART_1
+  )
+
+# Step 3: Perform Pairwise Comparisons Using Manual Data
+pairwise_results <- manual_stats %>%
+  rowwise() %>%
+  mutate(
+    z_value_RT = (Mean_RT_SART_2 - Mean_RT_SART_1) / sqrt((SD_RT_SART_1^2 / n_SART_1) + (SD_RT_SART_2^2 / n_SART_2)),
+    p_value_RT = 2 * (1 - pnorm(abs(z_value_RT))),  # Two-tailed test
+    z_value_Accuracy = (Mean_Accuracy_SART_2 - Mean_Accuracy_SART_1) / sqrt((SD_Accuracy_SART_1^2 / n_SART_1) + (SD_Accuracy_SART_2^2 / n_SART_2)),
+    p_value_Accuracy = 2 * (1 - pnorm(abs(z_value_Accuracy)))  # Two-tailed test
+  )
+
+# Step 4: Merge Results and Add Significance Indicators
+final_table <- comparison_table %>%
+  left_join(pairwise_results, by = "Condition") %>%
+  mutate(
+    Significance_RT = case_when(
+      p_value_RT < 0.01 ~ "**",
+      p_value_RT < 0.05 ~ "*",
+      TRUE ~ ""
+    ),
+    Significance_Accuracy = case_when(
+      p_value_Accuracy < 0.01 ~ "**",
+      p_value_Accuracy < 0.05 ~ "*",
+      TRUE ~ ""
+    )
+  )
+
+# Step 5: Create the Final Table
+kable(final_table, caption = "RT Means, Differences, and Comparisons") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+```
+
+
+```{r}
+library(kableExtra)
+
+# Prepare the table for Response Time
+response_time_table <- data.frame(
+  Condition = c("Control", "3D VR", "360-degree VR"),
+  `SART 1 M (SD)` = c(
+    paste0(round(479.98, 2), " (", round(131.67, 2), ")"),
+    paste0(round(483.44, 2), " (", round(132.50, 2), ")"),
+    paste0(round(495.21, 2), " (", round(134.89, 2), ")")
+  ),
+  `SART 2 M (SD)` = c(
+    paste0(round(480.43, 2), " (", round(150.28, 2), ")"),
+    paste0(round(474.41, 2), " (", round(145.20, 2), ")"),
+    paste0(round(470.93, 2), " (", round(142.45, 2), ")")
+  ),
+  `Difference M (SD)` = c(
+    paste0(round(0.45, 2), " (", round(18.61, 2), ")"),
+    paste0(round(-9.03, 2), " (", round(12.70, 2), ")"),
+    paste0(round(-24.28, 2), " (", round(7.56, 2), ")")
+  ),
+  `z` = c(
+    round(0.0250797, 2),
+    round(-0.5115452, 2),
+    round(-1.3781634, 2)
+  ),
+  `p-value` = c(
+    round(0.9799914, 3),
+    round(0.6089693, 3),
+    round(0.1681528, 3)
+  )
+)
+
+# Prepare the table for Accuracy
+accuracy_table <- data.frame(
+  Condition = c("Control", "3D VR", "360-degree VR"),
+  `SART 1 M (SD)` = c(
+    paste0(round(92.8, 2), " (", round(5.1, 2), ")"),
+    paste0(round(93.4, 2), " (", round(4.9, 2), ")"),
+    paste0(round(92.6, 2), " (", round(5.3, 2), ")")
+  ),
+  `SART 2 M (SD)` = c(
+    paste0(round(92.5, 2), " (", round(4.8, 2), ")"),
+    paste0(round(93.6, 2), " (", round(4.7, 2), ")"),
+    paste0(round(93.8, 2), " (", round(5.0, 2), ")")
+  ),
+  `Difference M (SD)` = c(
+    paste0(round(-0.3, 2), " (", round(-0.3, 2), ")"),
+    paste0(round(0.2, 2), " (", round(-0.2, 2), ")"),
+    paste0(round(1.2, 2), " (", round(-0.3, 2), ")")
+  ),
+  `z` = c(
+    round(-0.4769936, 2),
+    round(0.3280125, 2),
+    round(1.8339425, 2)
+  ),
+  `p-value` = c(
+    round(0.6333666, 3),
+    round(0.7429022, 3),
+    round(0.0666625, 3)
+  )
+)
+
+# Generate Response Time Table
+kable(response_time_table, caption = "RT Means, Differences, and Comparisons", align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>%
+  add_header_above(c(" " = 1, "SART 1" = 1, "SART 2" = 1, "Difference" = 1, "Pairwise Comparisons" = 2)) %>%
+  row_spec(0, bold = TRUE)
+
+# Generate Accuracy Table
+kable(accuracy_table, caption = "Accuracy Means, Differences, and Comparisons", align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>%
+  add_header_above(c(" " = 1, "SART 1" = 1, "SART 2" = 1, "Difference" = 1, "Pairwise Comparisons" = 2)) %>%
+  row_spec(0, bold = TRUE)
+
+```
+
+
+
+```{r}
+# Load necessary library
+library(dplyr)
+library(knitr)
+
+# Assuming your data is stored in the `avg` dataset
+
+# Calculate mean and SD for HSP scores across conditions
+hsp_stats <- avg %>%
+  group_by(Condition) %>%
+  summarise(
+    Mean_HSP = mean(`HSP scale score`, na.rm = TRUE),
+    SD_HSP = sd(`HSP scale score`, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Display the table
+kable(hsp_stats, caption = "Mean and Standard Deviation of HSP Scores Across Conditions")
+
+```
+
+
+
+
+```{r}
+
+# Step 1: Summarise Data for Accuracy
+accuracy_trend_data <- avg %>%
+  group_by(Condition, Time_Period) %>%
+  summarise(
+    Mean_Accuracy = mean(`Average Accuracy`, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Step 2: Create Line Plot
+accuracy_trend_plot <- ggplot(accuracy_trend_data, aes(x = Time_Period, y = Mean_Accuracy, group = Condition, color = Condition)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  labs(
+    title = "Trends in Mean Accuracy of SART Tasks Across Conditions",
+    x = "Time Period",
+    y = "Mean Accuracy (%)",
+    color = "Condition"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_color_manual(values = c("green", "blue", "red"))
+
+# Step 3: Print Plot
+print(accuracy_trend_plot)
+
+
+
+
+
+# Bar graph for Average Response Time
+response_time_plot <- avg %>%
+  group_by(Condition, Time_Period) %>%
+  summarise(
+    Mean_Response_Time = mean(`Average Response Time`, na.rm = TRUE),
+    SD_Response_Time = sd(`Average Response Time`, na.rm = TRUE)
+  ) %>%
+  ggplot(aes(x = Condition, y = Mean_Response_Time, fill = Time_Period)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_errorbar(aes(ymin = Mean_Response_Time - SD_Response_Time, ymax = Mean_Response_Time + SD_Response_Time),
+                width = 0.2, position = position_dodge(0.9)) +
+  labs(title = "Mean Response Times Across Conditions",
+       x = "Condition",
+       y = "Mean Response Time (ms)") +
+  theme_minimal() +
+  scale_fill_manual(values = c("yellow", "darkorange"), name = "Time Period", labels = c("SART 1", "SART 2")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+print(response_time_plot)
+
+
+```
+
+
+
+
+```{r}
+# Create a bar graph for participant counts by Sensitivity Group and Condition
+sensitivity_count_plot <- avg %>%
+  group_by(Condition, Sensitivity_Group) %>%
+  summarise(Participant_Count = n()) %>%  # Count the number of participants
+  ggplot(aes(x = Condition, y = Participant_Count, fill = Sensitivity_Group)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_manual(values = c("red", "blue"), name = "Sensitivity Group") +
+  labs(
+    title = "Participant Counts by Sensitivity Group Across Conditions",
+    x = "Condition",
+    y = "Number of Participants"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the plot
+print(sensitivity_count_plot)
+
+```
+
+
+
+
+# Correlation Analysis
+
+
+```{r}
+# Filter data for low and high sensitivity groups
+low_sensitivity <- avg %>% filter(Sensitivity_Group == "Low Sensitivity")
+high_sensitivity <- avg %>% filter(Sensitivity_Group == "High Sensitivity")
+
+# Correlation analysis for Average Response Time
+low_response_correlation <- cor.test(low_sensitivity$`Average Response Time`, low_sensitivity$`HSP scale score`, method = "pearson")
+high_response_correlation <- cor.test(high_sensitivity$`Average Response Time`, high_sensitivity$`HSP scale score`, method = "pearson")
+
+# Correlation analysis for Average Accuracy
+low_accuracy_correlation <- cor.test(low_sensitivity$`Average Accuracy`, low_sensitivity$`HSP scale score`, method = "pearson")
+high_accuracy_correlation <- cor.test(high_sensitivity$`Average Accuracy`, high_sensitivity$`HSP scale score`, method = "pearson")
+
+# Print results
+print(low_response_correlation)
+print(high_response_correlation)
+print(low_accuracy_correlation)
+print(high_accuracy_correlation)
+
+```
+
+
+
+
+
+
+#Testing
+
+
+
+```{r}
+# Ensure variables are factors where necessary
+avg$Condition <- as.factor(avg$Condition)
+avg$Sensitivity_Group <- as.factor(avg$Sensitivity_Group)
+avg$Time_Period <- as.factor(avg$Time_Period)
+```
+
+
+# Normality Test
+
+```{r}
+# Shapiro-Wilk test for Average Accuracy
+shapiro_accuracy <- shapiro.test(avg$`Average Accuracy`)
+print("Shapiro-Wilk Test for Average Accuracy:")
+print(shapiro_accuracy)
+
+# Shapiro-Wilk test for Average Response Time
+shapiro_response_time <- shapiro.test(avg$`Average Response Time`)
+print("Shapiro-Wilk Test for Average Response Time:")
+print(shapiro_response_time)
+
+```
+
+# Homogenity of variance Test
+
+```{r}
+# Load the necessary package
+library(car)
+
+# Levene's test for Average Accuracy
+levene_accuracy <- leveneTest(`Average Accuracy` ~ Condition * Sensitivity_Group * Time_Period, data = avg)
+
+# Levene's test for Average Response Time
+levene_response_time <- leveneTest(`Average Response Time` ~ Condition * Sensitivity_Group * Time_Period, data = avg)
+
+# Print the results
+print("Levene's Test for Average Accuracy:")
+print(levene_accuracy)
+
+print("Levene's Test for Average Response Time:")
+print(levene_response_time)
+
+```
+
+
+
+
+#transformation because normality assumption not met
+
+```{r}
+avg$Log10_Accuracy <- log10(avg$`Average Accuracy` + 1)
+avg$Log10_Response_Time <- log10(avg$`Average Response Time` + 1)
+
+# Test normality
+shapiro.test(avg$Log10_Accuracy)
+shapiro.test(avg$Log10_Response_Time)
+
+```
+
+
+# Could not make normal, while tried 2 transformation
+# Continued with aligned ranks transformation ANOVA dealing with non normality 
+# non parametric method
+
+
+
+```{r}
+library(ARTool)
+
+# Aligned ranks transformation for Average Accuracy
+art_model_accuracy <- art(`Average Accuracy` ~ Condition * Sensitivity_Group * Time_Period, data = avg)
+anova(art_model_accuracy)
+
+# Aligned ranks transformation for Average Response Time
+art_model_response <- art(`Average Response Time` ~ Condition * Sensitivity_Group * Time_Period, data = avg)
+anova(art_model_response)
+
+```
+
+# SART 1 and SART 2 for average accuracy and average RT
+
+
+```{r}
+# Load required library
+library(dplyr)
+
+# Kruskal-Wallis test for Average Accuracy by Time Period
+kruskal_accuracy <- kruskal.test(`Average Accuracy` ~ Time_Period, data = avg)
+print("Kruskal-Wallis Test for Average Accuracy by Time Period")
+print(kruskal_accuracy)
+
+# Kruskal-Wallis test for Average Response Time by Time Period
+kruskal_response_time <- kruskal.test(`Average Response Time` ~ Time_Period, data = avg)
+print("Kruskal-Wallis Test for Average Response Time by Time Period")
+print(kruskal_response_time)
+
+
+```
+
+
+
+
+
